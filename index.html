@@ -38,21 +38,25 @@
     </style>
   </head>
   <body>
-    <div class="container">
-      <h1 class="text-center">Christmas Gift Quiz</h1>
+    <div id="verification-section">
+      <h2 class="text-center">Verification Question</h2>
+      <p>True or False: Does Jaxon have a big toe?</p>
+      <select class="form-select" id="verificationAnswer">
+        <option value="" disabled selected>Select an option</option>
+        <option value="true">True</option>
+        <option value="false">False</option>
+      </select>
+      <button class="btn btn-primary" onclick="verifyVerificationAnswer()">
+        Verify
+      </button>
+    </div>
 
+    <!-- Quiz Section (Hidden initially) -->
+    <div id="quiz-section" style="display: none">
       <div id="questions-container">
-        <!-- Dynamically create question elements -->
-
         <div>
           <label>When is my birthday?</label>
-          <input
-            type="date"
-            class="form-control"
-            id="answer1"
-            required
-            onfocus="(this.type='date')"
-          />
+          <input type="date" class="form-control" id="answer1" required />
           <span id="result1"></span><br /><br />
         </div>
 
@@ -125,8 +129,41 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.min.js"></script>
 
     <script>
+      const verificationQuestion = 'Does Jaxon have a big toe?';
+      const correctVerificationAnswer = 'true'; // The correct answer is 'True'.
+
+      function verifyVerificationAnswer() {
+        const verificationAnswer = document
+          .getElementById('verificationAnswer')
+          .value.trim()
+          .toLowerCase();
+
+        if (verificationAnswer === correctVerificationAnswer) {
+          // If the verification is successful, show the quiz section.
+          showQuizSection();
+        } else {
+          // If the verification fails, you can handle it (e.g., show an alert).
+          alert('Verification failed. Please try again.');
+        }
+      }
+
+      function showQuizSection() {
+        document.getElementById('verification-section').style.display = 'none';
+        document.getElementById('quiz-section').style.display = 'block';
+      }
+
+      function createQuestionElement(question, index) {
+        const questionElement = document.createElement('div');
+        questionElement.innerHTML = `
+        <label>${question}</label>
+        <input type="text" id="answer${index + 1}" required>
+        <span id="result${index + 1}"></span><br><br>
+      `;
+        return questionElement;
+      }
+
       const answers = [
-        '03/04/2001',
+        '2001-03-04',
         'right-handed',
         '5ft-11in',
         'League-of-Legends',
@@ -145,7 +182,6 @@
     `;
         return questionElement;
       }
-
       function submitAnswers() {
         const userProvidedAnswers = [];
         for (let i = 0; i < answers.length; i++) {
@@ -167,6 +203,14 @@
             verificationResults[i] ? 'green' : 'red'
           }">${correctnessText}</strong>`;
         }
+
+        // Check if all answers are correct
+        const allCorrect = verificationResults.every((result) => result);
+
+        // If all answers are correct, navigate to the reward page
+        if (allCorrect) {
+          window.location.href = 'reward.html';
+        }
       }
 
       function resetAnswers() {
@@ -180,19 +224,25 @@
 
       function verifyAnswers(userAnswers) {
         const results = [];
-
         for (let i = 0; i < answers.length; i++) {
           const userAnswer = userAnswers[i];
           const correctAnswer = answers[i];
 
-          if (userAnswer === correctAnswer || correctAnswer === '') {
-            results.push(true);
+          if (i === 0) {
+            const userDate = formatDate(new Date(userAnswer));
+            const correctDate = formatDate(new Date(correctAnswer));
+            results.push(userDate === correctDate);
           } else {
-            results.push(false);
+            results.push(userAnswer === correctAnswer || correctAnswer === '');
           }
         }
 
         return results;
+      }
+
+      function formatDate(date) {
+        const options = { year: 'numeric', month: '2-digit', day: '2-digit' };
+        return date.toLocaleDateString('en-US', options);
       }
     </script>
   </body>

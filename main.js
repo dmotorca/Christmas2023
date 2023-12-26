@@ -8,13 +8,28 @@ const questions = [
 ];
 
 const answers = [
-  '03/04/2001',
+  '03-04-2001',
   'right-handed',
-  '5ft 11in',
-  'League of Legends',
+  '5ft-11in',
+  'League-of-Legends',
   'Green',
   '',
 ];
+function parseDate(dateString) {
+  const parts = dateString.split('-');
+  if (parts.length === 3) {
+    const year = parseInt(parts[0], 10);
+    const month = parseInt(parts[1], 10);
+    const day = parseInt(parts[2], 10);
+
+    // Validate year, month, and day
+    if (month >= 1 && month <= 12 && day >= 1 && day <= 31 && year >= 1000) {
+      return new Date(year, month - 1, day);
+    }
+  }
+
+  return null; // Return null for invalid date
+}
 
 function createQuestionElement(question, index) {
   const questionElement = document.createElement('div');
@@ -34,8 +49,12 @@ function submitAnswers() {
     userProvidedAnswers.push(answer);
   }
 
+  localStorage.setItem('userAnswers', JSON.stringify(userProvidedAnswers));
   // Verify user answers
   const verificationResults = verifyAnswers(userProvidedAnswers);
+
+  // Check if all answers are correct
+  const allCorrect = verificationResults.every((result) => result);
 
   // Display results
   for (let i = 0; i < verificationResults.length; i++) {
@@ -45,26 +64,35 @@ function submitAnswers() {
       verificationResults[i] ? 'green' : 'red'
     }">${correctnessText}</strong>`;
   }
+
+  // Inside the submitAnswers function
+  console.log('Verification results:', verificationResults);
+
+  // If all answers are correct, navigate to the reward page
+  if (allCorrect) {
+    console.log('All answers are correct. Redirecting to reward.html');
+    window.location.href = 'reward.html';
+  }
 }
-
-// Dynamically create question elements
-const questionsContainer = document.getElementById('questions-container');
-questions.forEach((question, index) => {
-  const questionElement = createQuestionElement(question, index);
-  questionsContainer.appendChild(questionElement);
-});
-
 function verifyAnswers(userAnswers) {
   const results = [];
 
-  for (let i = 0; i < answers.length - 1; i++) {
+  for (let i = 0; i < answers.length; i++) {
     const userAnswer = userAnswers[i];
     const correctAnswer = answers[i];
 
-    if (userAnswer === correctAnswer || correctAnswer === '') {
-      results.push(true);
+    // Special handling for the date question (index 0)
+    if (i === 0) {
+      const userDate = parseDate(userAnswer);
+      const correctDate = parseDate(correctAnswer);
+
+      // Compare dates only (not the time)
+      results.push(
+        userDate && correctDate && userDate.getTime() === correctDate.getTime()
+      );
     } else {
-      results.push(false);
+      // For other questions, compare as usual
+      results.push(userAnswer === correctAnswer || correctAnswer === '');
     }
   }
 
